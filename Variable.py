@@ -6,6 +6,7 @@ EPSILON = 'ε'
 class Symbol:
     next_id = 0
     node_map = {}
+    variable_map = {}
 
     def __init__(self, symbol=EPSILON, is_terminal=False):
         self.symbol = symbol
@@ -15,6 +16,8 @@ class Symbol:
 
         # globals
         Symbol.node_map[self.id] = self
+        if not self.isTerminal:
+            Symbol.variable_map[self.symbol] = self
         Symbol.next_id += 1
 
     @staticmethod

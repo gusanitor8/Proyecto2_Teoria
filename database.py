@@ -107,8 +107,7 @@ class Database:
 
                     # Now you can work with the list of reachable nodes
                     for node in all_reachable_nodes:
-                        # TODO quitar el print
-                        print(node_id := node.get("id"))
+                        node_id = node.get("id")
                         reachable_nodes_id.add(node_id)
 
                 return reachable_nodes_id

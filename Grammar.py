@@ -48,8 +48,36 @@ class Grammar:
         db = Database()
         self.eliminate_unit_rules(db)
         view_grammar(self)
-
         db.clear_database()
+
+        # single terminal production form
+        self.__create_terminal_vars()
+        self.__replace_terminals()
+        view_grammar(self)
+
+    def __create_terminal_vars(self):
+        for terminal in self.terminals:
+            if terminal.symbol != EPSILON:
+                new_symbol = Symbol(terminal.symbol)
+                new_symbol.add_production((terminal,))
+                self.symbols.add(new_symbol)
+
+    def __replace_terminals(self):
+        for symbol in self.symbols:
+            new_productions = set()
+            for production in symbol.productions:
+                if len(production) > 1:
+                    new_production = []
+                    for production_symbol in production:
+                        if production_symbol.is_terminal():
+                            new_symbol = Symbol.variable_map[production_symbol.symbol]
+                            new_production.append(new_symbol)
+                        else:
+                            new_production.append(production_symbol)
+                    new_productions.add(tuple(new_production))
+                else:
+                    new_productions.add(production)
+            symbol.productions = new_productions
 
     def eliminate_unit_rules(self, db: Database):
         db.instanciate_nodes(self.symbols)
@@ -65,7 +93,15 @@ class Grammar:
                     if symbol != unit_rule:
                         symbol.productions = symbol.productions.union(unit_rule.productions)
 
+        self.__remove_unit_rules()
 
+    def __remove_unit_rules(self):
+        for symbol in self.symbols:
+            new_productions = set()
+            for production in symbol.productions:
+                if not (len(production) == 1 and not production[0].is_terminal()):
+                    new_productions.add(production)
+            symbol.productions = new_productions
 
     def __start_var_not_in_rhs(self):
         """
@@ -164,7 +200,7 @@ class Grammar:
                 nullable = [symbol for symbol in production if symbol in nulable_vars]
                 if nullable:
                     permuted_nullables = self.__permutate(nullable)
-                    new_productions = self.__generate_new_productions(permuted_nullables, production)
+                    new_productions = self.__generate_new_productions(permuted_nullables, production, nullable)
                     new_productions = new_productions.union(symbol.productions)
                     new_productions = self.__remove_epsilon(new_productions)
                     new_symbol.add_productions(new_productions)
@@ -189,7 +225,7 @@ class Grammar:
 
         return new_productions
 
-    def __generate_new_productions(self, permuted_nullable, original_production: tuple):
+    def __generate_new_productions(self, permuted_nullable, original_production: tuple, nullable_vars):
         """
         Genera las nuevas producciones con base en una produccion y las variables anulables
         :param permuted_nullable: conjunto de tuplas con las variables anulables permutadas
@@ -201,7 +237,7 @@ class Grammar:
             production = []
             for symbol in original_production:
                 # TODO arreglar bug, se debe revisar si es anulable, no si es terminal
-                if symbol.is_terminal():
+                if symbol not in nullable_vars:
                     production.append(symbol)
                 else:
                     new_symbol = tupla.pop(0)
@@ -218,6 +254,7 @@ class Grammar:
         :param nullable_tuple: una lista de todas las variables anulables
         :return: list
         """
+        nullable_tuple = list(nullable_tuple)
         length = len(nullable_tuple)
         boolean_combinations = self.__generate_boolean_combinations(length)
         new_tuples = []
