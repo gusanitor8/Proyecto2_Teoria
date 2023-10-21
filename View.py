@@ -1,10 +1,11 @@
-#from Grammar import Grammar
+# from Grammar import Grammar
 
 VARIABLE_INDICATOR = '_'
 
+
 def view_grammar(grammar):
     for symbol in grammar.symbols:
-        if not symbol.is_terminal():
+        if not symbol.is_terminal() and symbol.productions:
             if symbol.is_terminal():
                 print(symbol.symbol, '->', end=' ')
             else:

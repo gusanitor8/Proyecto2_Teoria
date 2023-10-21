@@ -7,14 +7,14 @@ A = Symbol('A')
 B = Symbol('B')
 a = Symbol('a', True)
 b = Symbol('b', True)
-epsilon = Symbol(is_terminal=True)
+# epsilon = Symbol(is_terminal=True)
 
-symbols = {S, A, B, a, b, epsilon}
-terminals = {a, b, epsilon}
+symbols = {S, A, B, a, b}
+terminals = {a, b}
 start_symbol = S
 
-S.add_production((A, a, B), (b,))
-A.add_production((S,), (epsilon,), (A, B))
-B.add_production((b, b, b), (A, S, A))
+S.add_production((A, B), (a,))
+A.add_production((b,))
+# B.add_production((b, b, b), (A, S, A))
 
 grammar = Grammar(symbols, terminals, start_symbol)

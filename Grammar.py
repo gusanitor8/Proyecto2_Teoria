@@ -14,53 +14,93 @@ class Grammar:
         self.production_symbol_map = {}
         self.__generate_production_symbol_map()
 
-        self.controller()
         self.normalize()
-
-    def controller(self):
-        # producing_vars = self.__produces()
-        # reachable_vars = self.__reachable()
-        # nulable_vars = self.get_nullable_vars()
-        #
-        # # db part
-        # new_symbols = self.__remove_epsilon_productions(nulable_vars)
-        #
-        # db = Database()
-        # db.instanciate_nodes(new_symbols)
-        # db.clear_database()
-        pass
 
     def normalize(self):
         # inital grammar
+        print("initial grammar")
         view_grammar(self)
 
         # adding S0 -> S
+        print("adding S0 -> S")
         self.__start_var_not_in_rhs()
         view_grammar(self)
 
+        # removing non genarating symbols
+        print("removing non generating symbols")
+        self.__remove_non_generating_symbols()
+        view_grammar(self)
+
+        # removing unreachable symbols
+        print("removing unreachable symbols")
+        self.__remove_unreachable_symbols()
+        view_grammar(self)
+
         # removing epsilon productions
+        print("removing epsilon productions")
         nullable_vars = self.get_nullable_vars()
         new_symbols = self.__remove_epsilon_productions(nullable_vars)
         self.symbols = new_symbols
         view_grammar(self)
 
         # eliminating unit rules
+        print("eliminating unit rules")
         db = Database()
         self.eliminate_unit_rules(db)
         view_grammar(self)
         db.clear_database()
 
         # single terminal production form
+        print("single terminal production form")
         self.__create_terminal_vars()
         self.__replace_terminals()
         view_grammar(self)
 
+    def __remove_non_generating_symbols(self):
+        generating_symbols = self.__produces()
+
+        new_symbols = set()
+        for symbol in self.symbols:  # iterar sobree cada simbolo
+            new_productions = set()
+            if symbol in generating_symbols:
+                for production in symbol.productions:  # iterar sobre cada produccion del simbolo
+                    if any(symbols not in generating_symbols for symbols in production):
+                        continue
+                    else:
+                        new_productions.add(production)
+
+                symbol.productions = new_productions
+                new_symbols.add(symbol)
+
+        self.symbols = new_symbols
+
+    def __remove_unreachable_symbols(self):
+        reachable_symbols = self.__reachable()
+
+        new_symbols = set()
+        for symbol in self.symbols:
+            if symbol in reachable_symbols:
+                new_symbols.add(symbol)
+
+        self.symbols = new_symbols
+
     def __create_terminal_vars(self):
-        for terminal in self.terminals:
+        terminals = self.__terminal_vars_needed()
+        for terminal in terminals:
             if terminal.symbol != EPSILON:
                 new_symbol = Symbol(terminal.symbol)
                 new_symbol.add_production((terminal,))
                 self.symbols.add(new_symbol)
+
+    def __terminal_vars_needed(self):
+        terminal_vars_needed = set()
+        for symbol in self.symbols:
+            for production in symbol.productions:
+                for production_symbol in production:
+                    if production_symbol.is_terminal() and len(production) > 1:
+                        terminal_vars_needed.add(production_symbol)
+
+        return terminal_vars_needed
 
     def __replace_terminals(self):
         for symbol in self.symbols:
