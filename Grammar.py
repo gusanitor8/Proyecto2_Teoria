@@ -1,6 +1,8 @@
 from Variable import EPSILON, Symbol
+from View import view_grammar
 from typing import Set
 from itertools import product
+from database import Database
 
 
 class Grammar:
@@ -12,10 +14,68 @@ class Grammar:
         self.production_symbol_map = {}
         self.__generate_production_symbol_map()
 
-        producing_vars = self.__produces()
-        reachable_vars = self.__reachable()
-        nulable_vars = self.get_nullable_vars()
-        self.__remove_epsilon_productions(nulable_vars)
+        self.controller()
+        self.normalize()
+
+    def controller(self):
+        # producing_vars = self.__produces()
+        # reachable_vars = self.__reachable()
+        # nulable_vars = self.get_nullable_vars()
+        #
+        # # db part
+        # new_symbols = self.__remove_epsilon_productions(nulable_vars)
+        #
+        # db = Database()
+        # db.instanciate_nodes(new_symbols)
+        # db.clear_database()
+        pass
+
+    def normalize(self):
+        # inital grammar
+        view_grammar(self)
+
+        # adding S0 -> S
+        self.__start_var_not_in_rhs()
+        view_grammar(self)
+
+        # removing epsilon productions
+        nullable_vars = self.get_nullable_vars()
+        new_symbols = self.__remove_epsilon_productions(nullable_vars)
+        self.symbols = new_symbols
+        view_grammar(self)
+
+        # eliminating unit rules
+        db = Database()
+        self.eliminate_unit_rules(db)
+        view_grammar(self)
+
+        db.clear_database()
+
+    def eliminate_unit_rules(self, db: Database):
+        db.instanciate_nodes(self.symbols)
+
+        for symbol in self.symbols:
+            reachable_unit_rules_ids = db.get_reachable_nodes(symbol)
+
+            if reachable_unit_rules_ids:
+                reachable_unit_rules = [Symbol.node_map[symbol_id] for symbol_id in reachable_unit_rules_ids]
+                reachable_unit_rules: Set[Symbol] = set(reachable_unit_rules)
+
+                for unit_rule in reachable_unit_rules:
+                    if symbol != unit_rule:
+                        symbol.productions = symbol.productions.union(unit_rule.productions)
+
+
+
+    def __start_var_not_in_rhs(self):
+        """
+        Este metodo agrega una nueva produccion S0 -> S
+        de forma que nustra variable inicial no esta del lado derecho
+        :return:
+        """
+        s0 = Symbol('S0')
+        s0.add_production((self.start_symbol,))
+        self.symbols.add(s0)
 
     def __generate_production_symbol_map(self):
         """
@@ -25,9 +85,6 @@ class Grammar:
         for symbol in self.symbols:
             for production in symbol.productions:
                 self.production_symbol_map[production] = symbol
-
-    def normalize(self):
-        pass
 
     def eliminate_useless_symbols(self):
         pass
@@ -95,7 +152,7 @@ class Grammar:
 
     def __remove_epsilon_productions(self, nulable_vars: Set):
         """
-        Este metodo elimina las producciones epsilon de la gramatica
+        Este metodo devuelve los nuevas producciones de la gramatica sin epsilon
         :return: set de simbolos con las producciones epsilon eliminadas
         """
 
@@ -112,8 +169,9 @@ class Grammar:
                     new_productions = self.__remove_epsilon(new_productions)
                     new_symbol.add_productions(new_productions)
                 else:
-                    if symbol.get_symbol() != EPSILON:
-                        new_symbol.add_production(production)
+                    if symbol.get_symbol() != EPSILON and len(production) > 0:
+                        if production[0].get_symbol() != EPSILON:
+                            new_symbol.add_production(production)
 
             if new_symbol.get_symbol() != EPSILON:
                 new_symbols.add(new_symbol)
@@ -122,13 +180,14 @@ class Grammar:
 
     @staticmethod
     def __remove_epsilon(productions: set):
+        new_productions = set()
         for production in productions:
             for symbol in production:  # TODO revisar si puede existir epsilon junto con otros simbolos
-                if symbol.get_symbol() == EPSILON:
-                    productions.remove(production)
-                    return productions
+                if not symbol.get_symbol() == EPSILON:
+                    new_productions.add(production)
+                    break
 
-        return productions
+        return new_productions
 
     def __generate_new_productions(self, permuted_nullable, original_production: tuple):
         """
@@ -141,14 +200,15 @@ class Grammar:
         for tupla in permuted_nullable:
             production = []
             for symbol in original_production:
+                # TODO arreglar bug, se debe revisar si es anulable, no si es terminal
                 if symbol.is_terminal():
                     production.append(symbol)
                 else:
                     new_symbol = tupla.pop(0)
                     if new_symbol is not None:
                         production.append(new_symbol)
-
-            new_productions.add(tuple(production))
+            if len(production) > 0:
+                new_productions.add(tuple(production))
 
         return new_productions
 
