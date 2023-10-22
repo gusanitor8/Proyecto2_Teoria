@@ -25,7 +25,7 @@ A.add_production((b,))
 ```
 
 En esta instancia estamos ingresando una gramatica $ G = (V, \Sigma, R, S) $  
-donde $ V = \{S, A, B\} $, $ \Sigma = \{a, b\} $, $ S = S $ y $ R = \{ S \rightarrow AB 
+donde $V = \{S, A, B\}$, $\Sigma = \{a, b\} $, $R = \{ S \rightarrow AB 
 | a, A \rightarrow b \}$ y $S = S$
 
 
