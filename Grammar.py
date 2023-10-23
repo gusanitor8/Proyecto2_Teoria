@@ -4,7 +4,7 @@ from typing import Set
 from itertools import product
 from database import Database
 
-VARIABLE_INDICATOR = '_'
+VARIABLE_INDICATOR = '0'
 
 
 class Grammar:
@@ -336,7 +336,7 @@ class Grammar:
                 if symbol.is_terminal():
                     dictionarized_grammar[symbol.symbol] = []
                 else:
-                    dictionarized_grammar[VARIABLE_INDICATOR + symbol.symbol] = []
+                    dictionarized_grammar[symbol.symbol + VARIABLE_INDICATOR] = []
 
                 for index, production in enumerate(symbol.productions):
                     new_production = []
@@ -345,11 +345,11 @@ class Grammar:
                         if production_symbol.is_terminal():
                             new_production.append(production_symbol.symbol)
                         else:
-                            new_production.append(VARIABLE_INDICATOR + production_symbol.symbol)
+                            new_production.append(production_symbol.symbol + VARIABLE_INDICATOR)
 
                     if symbol.is_terminal():
                         dictionarized_grammar[symbol.symbol].append(new_production)
                     else:
-                        dictionarized_grammar[VARIABLE_INDICATOR + symbol.symbol].append(new_production)
+                        dictionarized_grammar[symbol.symbol + VARIABLE_INDICATOR].append(new_production)
 
         return dictionarized_grammar
