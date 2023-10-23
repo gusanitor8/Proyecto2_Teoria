@@ -2,6 +2,7 @@ from Variable import *
 from Grammar import *
 from database import *
 from cyk import *
+from graphviz import Digraph
 
 E = Symbol('E')
 X = Symbol('X')
@@ -52,7 +53,7 @@ if output:
     print("-----------------------------------------------------------")
     print(f"Tiempo tardado: {execution_time:.6f} segundos")
     # Si deseas visualizar el árbol de análisis, descomenta la siguiente línea:
-    # visualize_parse_tree(parse_tree)
+    visualize_parse_tree(parse_tree)
 else:
     print(f"La cadena de entrada '{w}' no pertenece a la gramatica :(")
     print("-----------------------------------------------------------")
