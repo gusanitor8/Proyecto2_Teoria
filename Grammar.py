@@ -4,6 +4,8 @@ from typing import Set
 from itertools import product
 from database import Database
 
+VARIABLE_INDICATOR = '_'
+
 
 class Grammar:
     def __init__(self, symbols: Set, terminals: Set, start_symbol):
@@ -13,8 +15,6 @@ class Grammar:
 
         self.production_symbol_map = {}
         self.__generate_production_symbol_map()
-
-        self.normalize()
 
     def normalize(self):
         # inital grammar
@@ -323,3 +323,33 @@ class Grammar:
         boolean_combinations = list(product(boolean_values, repeat=n))
 
         return boolean_combinations
+
+    def to_dict(self) -> dict[str, list[list[str]]]:
+        """
+        Convierte la gramatica a un diccionario
+        :return: dict
+        """
+        dictionarized_grammar = {}
+
+        for symbol in self.symbols:
+            if not symbol.is_terminal() and symbol.productions:
+                if symbol.is_terminal():
+                    dictionarized_grammar[symbol.symbol] = []
+                else:
+                    dictionarized_grammar[VARIABLE_INDICATOR + symbol.symbol] = []
+
+                for index, production in enumerate(symbol.productions):
+                    new_production = []
+
+                    for production_symbol in production:
+                        if production_symbol.is_terminal():
+                            new_production.append(production_symbol.symbol)
+                        else:
+                            new_production.append(VARIABLE_INDICATOR + production_symbol.symbol)
+
+                    if symbol.is_terminal():
+                        dictionarized_grammar[symbol.symbol].append(new_production)
+                    else:
+                        dictionarized_grammar[VARIABLE_INDICATOR + symbol.symbol].append(new_production)
+
+        return dictionarized_grammar
