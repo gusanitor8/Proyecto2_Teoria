@@ -1,6 +1,7 @@
 from Variable import *
 from Grammar import *
 from database import *
+from cyk import *
 
 E = Symbol('E')
 X = Symbol('X')
@@ -31,4 +32,28 @@ grammar.normalize()
 
 print("diccionario: \n")
 dictionary = grammar.to_dict()
-print(dictionary)
+
+# cadenas a testear NO validas
+# w = "id + * id" 
+# w = "id + id +"
+# w = "(id + id"
+
+# cadenas a testear validas
+w = "id + id * id"
+# w = "id"
+# w = "* id"
+
+# Realiza el análisis CYK
+output, parse_tree, execution_time = parse_sentence_cyk(w, dictionary)
+
+# Verifica si la cadena pertenece a la gramática
+if output:
+    print(f"La cadena de entrada '{w}' si pertenece a la gramatica :)")
+    print("-----------------------------------------------------------")
+    print(f"Tiempo tardado: {execution_time:.6f} segundos")
+    # Si deseas visualizar el árbol de análisis, descomenta la siguiente línea:
+    # visualize_parse_tree(parse_tree)
+else:
+    print(f"La cadena de entrada '{w}' no pertenece a la gramatica :(")
+    print("-----------------------------------------------------------")
+    print(f"Tiempo tardado: {execution_time:.6f} segundos")

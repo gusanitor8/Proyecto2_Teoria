@@ -4,7 +4,7 @@ from typing import Set
 from itertools import product
 from database import Database
 
-VARIABLE_INDICATOR = '_'
+VARIABLE_INDICATOR = '0'
 
 
 class Grammar:
