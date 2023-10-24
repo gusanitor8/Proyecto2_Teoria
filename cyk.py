@@ -1,6 +1,9 @@
 from graphviz import Digraph
 import time
 
+# Fuente de ayuda para el algoritmo CYK (Cocke-Younger-Kasami):
+# https://www.geeksforgeeks.org/cocke-younger-kasami-cyk-algorithm/
+
 class ParseTreeNode:
     def __init__(self, value, children=[]):
         """
