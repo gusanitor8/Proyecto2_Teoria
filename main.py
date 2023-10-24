@@ -31,16 +31,15 @@ F.add_production((l_parenthesis, E, r_parenthesis), (id,))
 grammar = Grammar(symbols, terminals, start_symbol)
 grammar.normalize()
 
-print("diccionario: \n")
 dictionary = grammar.to_dict()
 
 # cadenas a testear NO validas
-# w = "id + * id" 
+w = "id + * id"
 # w = "id + id +"
 # w = "(id + id"
 
 # cadenas a testear validas
-w = "id + id * id"
+# w = "id + id * id"
 # w = "id"
 # w = "* id"
 
